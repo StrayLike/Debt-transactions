@@ -1,0 +1,11 @@
+[
+  {
+    "id": 1,
+    "person": "Назар",
+    "type": "owe_me",
+    "amount": 500.0,
+    "date": "2026-06-22",
+    "is_returned": false,
+    "note": "авппв"
+  }
+]
