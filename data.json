@@ -5,7 +5,160 @@
     "type": "owe_me",
     "amount": 500.0,
     "date": "2026-06-22",
-    "is_returned": false,
+    "is_returned": true,
     "note": "авппв"
+  },
+  {
+    "id": 2,
+    "creditor": "Олег",
+    "debtor": "Галина",
+    "amount": 1000.0,
+    "timestamp": "2026-06-22 12:24:44",
+    "is_returned": false,
+    "note": "гроші"
+  },
+  {
+    "id": 3,
+    "creditor": "йуй",
+    "debtor": "йцкйц",
+    "amount": 213.0,
+    "timestamp": "2026-06-22 12:24:59",
+    "is_returned": false,
+    "note": "1"
+  },
+  {
+    "id": 4,
+    "creditor": "іпів",
+    "debtor": "іівпі",
+    "amount": 223.0,
+    "timestamp": "2026-06-22 12:25:10",
+    "is_returned": false,
+    "note": "12"
+  },
+  {
+    "id": 5,
+    "creditor": "Я",
+    "debtor": "Олег",
+    "amount": 150.0,
+    "timestamp": "2026-06-18 13:05:00",
+    "is_returned": false,
+    "note": "На обід"
+  },
+  {
+    "id": 6,
+    "creditor": "Марія",
+    "debtor": "Я",
+    "amount": 500.0,
+    "timestamp": "2026-06-19 10:00:00",
+    "is_returned": false,
+    "note": "До зарплати"
+  },
+  {
+    "id": 7,
+    "creditor": "Я",
+    "debtor": "Іван",
+    "amount": 250.0,
+    "timestamp": "2026-06-20 18:30:00",
+    "is_returned": false,
+    "note": "Квитки в кіно"
+  },
+  {
+    "id": 8,
+    "creditor": "Олег",
+    "debtor": "Марія",
+    "amount": 100.0,
+    "timestamp": "2026-06-20 14:15:00",
+    "is_returned": false,
+    "note": "Кава"
+  },
+  {
+    "id": 9,
+    "creditor": "Я",
+    "debtor": "Марія",
+    "amount": 1200.0,
+    "timestamp": "2026-06-21 09:45:00",
+    "is_returned": false,
+    "note": "Ремонт авто"
+  },
+  {
+    "id": 10,
+    "creditor": "Брат",
+    "debtor": "Я",
+    "amount": 800.0,
+    "timestamp": "2026-06-21 16:20:00",
+    "is_returned": false,
+    "note": "Подарунок"
+  },
+  {
+    "id": 11,
+    "creditor": "Я",
+    "debtor": "Олег",
+    "amount": 50.0,
+    "timestamp": "2026-06-21 23:10:00",
+    "is_returned": false,
+    "note": "Таксі"
+  },
+  {
+    "id": 12,
+    "creditor": "Іван",
+    "debtor": "Олег",
+    "amount": 300.0,
+    "timestamp": "2026-06-22 19:00:00",
+    "is_returned": false,
+    "note": "Піца"
+  },
+  {
+    "id": 13,
+    "creditor": "Я",
+    "debtor": "Марія",
+    "amount": 150.0,
+    "timestamp": "2026-06-15 11:30:00",
+    "is_returned": false,
+    "note": "Аптека"
+  },
+  {
+    "id": 14,
+    "creditor": "Олена",
+    "debtor": "Я",
+    "amount": 400.0,
+    "timestamp": "2026-06-16 20:45:00",
+    "is_returned": false,
+    "note": "Підписка Netflix"
+  },
+  {
+    "id": 15,
+    "creditor": "Я",
+    "debtor": "Іван",
+    "amount": 950.0,
+    "timestamp": "2026-06-17 12:10:00",
+    "is_returned": false,
+    "note": "Навушники"
+  },
+  {
+    "id": 16,
+    "creditor": "Олег",
+    "debtor": "Я",
+    "amount": 200.0,
+    "timestamp": "2026-06-18 08:50:00",
+    "is_returned": false,
+    "note": "Борг за бензин"
+  },
+  {
+    "id": 17,
+    "creditor": "Марія",
+    "debtor": "Іван",
+    "amount": 2000.0,
+    "timestamp": "2026-06-22 12:36:02",
+    "is_returned": false,
+    "note": "Чай"
+  },
+  {
+    "id": 18,
+    "creditor": "Я",
+    "debtor": "Брат",
+    "amount": 3000.0,
+    "timestamp": "2026-06-20 21:00:00",
+    "is_returned": false,
+    "note": "Апгрейд ПК"
   }
 ]

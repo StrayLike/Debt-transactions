@@ -1,0 +1,17 @@
+[
+  { "creditor": "Я", "debtor": "Олег", "amount": 150.0, "note": "На обід", "timestamp": "2026-06-18 13:05:00" },
+  { "creditor": "Марія", "debtor": "Я", "amount": 500.0, "note": "До зарплати", "timestamp": "2026-06-19 10:00:00" },
+  { "creditor": "Я", "debtor": "Іван", "amount": 250.0, "note": "Квитки в кіно", "timestamp": "2026-06-20 18:30:00" },
+  { "creditor": "Олег", "debtor": "Марія", "amount": 100.0, "note": "Кава", "timestamp": "2026-06-20 14:15:00" },
+  { "creditor": "Я", "debtor": "Марія", "amount": 1200.0, "note": "Ремонт авто", "timestamp": "2026-06-21 09:45:00" },
+  { "creditor": "Брат", "debtor": "Я", "amount": 800.0, "note": "Подарунок", "timestamp": "2026-06-21 16:20:00" },
+  { "creditor": "Я", "debtor": "Олег", "amount": 50.0, "note": "Таксі", "timestamp": "2026-06-21 23:10:00" },
+  { "creditor": "Іван", "debtor": "Олег", "amount": 300.0, "note": "Піца", "timestamp": "2026-06-22 19:00:00" },
+  { "creditor": "Я", "debtor": "Марія", "amount": 150.0, "note": "Аптека", "timestamp": "2026-06-15 11:30:00" },
+  { "creditor": "Олена", "debtor": "Я", "amount": 400.0, "note": "Підписка Netflix", "timestamp": "2026-06-16 20:45:00" },
+  { "creditor": "Я", "debtor": "Іван", "amount": 950.0, "note": "Навушники", "timestamp": "2026-06-17 12:10:00" },
+  { "creditor": "Олег", "debtor": "Я", "amount": 200.0, "note": "Борг за бензин", "timestamp": "2026-06-18 08:50:00" },
+  { "creditor": "Марія", "debtor": "Іван", "amount": 60.0, "note": "Чай", "timestamp": "2026-06-19 15:25:00" },
+  { "creditor": "Я", "debtor": "Брат", "amount": 3000.0, "note": "Апгрейд ПК", "timestamp": "2026-06-20 21:00:00" },
+  { "creditor": "Іван", "debtor": "Я", "amount": 120.0, "note": "Шаурма", "timestamp": "2026-06-22 13:40:00" }
+]
