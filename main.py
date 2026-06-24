@@ -1,8 +1,29 @@
 import json
 import os
+import csv
 from datetime import datetime
 
+# --- Ініціалізація кольорів (ANSI) ---
+if os.name == 'nt':
+    os.system("") # Вмикає підтримку ANSI-кольорів у Windows CMD
+
+RED = '\033[91m'
+GREEN = '\033[92m'
+YELLOW = '\033[93m'
+CYAN = '\033[96m'
+BOLD = '\033[1m'
+RESET = '\033[0m'
+
 DATA_FILE = "data.json"
+
+# --- Інструменти інтерфейсу ---
+def clear():
+    """Очищує термінал для ефекту 'живого' додатка."""
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+def pause():
+    """Зупиняє програму до натискання Enter."""
+    input(f"\n{YELLOW} ⏎ Натисніть Enter, щоб повернутися до меню...{RESET}")
 
 # --- Робота з файлами ---
 def load_data():
@@ -15,7 +36,7 @@ def save_data(records):
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(records, f, ensure_ascii=False, indent=2)
 
-# --- Ядро логіки ---
+# --- Ядро логіки (цілочисельні коди) ---
 def logic_add_record(records, creditor, debtor, amount, note, timestamp):
     new_id = 1 if not records else max(r.get("id", 0) for r in records) + 1
     records.append({
@@ -43,56 +64,129 @@ def logic_delete_record(records, rec_id):
         return 1
     return 0
 
-def logic_import_json(records, filepath):
-    if not os.path.exists(filepath):
-        return 1
-    try:
-        with open(filepath, "r", encoding="utf-8") as f:
-            imported_data = json.load(f)
-            for item in imported_data:
-                if "creditor" in item and "debtor" in item and "amount" in item:
-                    logic_add_record(
-                        records, 
-                        item["creditor"], 
-                        item["debtor"], 
-                        float(item["amount"]), 
-                        item.get("note", ""), 
-                        item.get("timestamp", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-                    )
-        return 0
-    except Exception:
-        return 2
+# --- Універсальний рушій фільтрації та сортування ---
+def get_filtered_sorted_records(records):
+    print(f"\n {BOLD}[1/3] Що шукаємо? (0 для відміни){RESET}")
+    print(" 1. Всі записи (без фільтру за особою)")
+    print(" 2. Записи конкретної особи")
+    print(" 3. Пошук за ключовим словом (текст примітки/імена)")
+    c1 = input(f" {CYAN}❯ Ваш вибір:{RESET} ").strip()
+    if c1 == "0": return None
+    
+    filtered = records.copy()
+    
+    if c1 == "2":
+        person = input(f" {CYAN}❯ Введіть ім'я особи:{RESET} ").strip().lower()
+        if person == "0": return None
+        
+        print(f"\n {BOLD}[2/3] Фільтр для '{person.title()}' (0 для відміни):{RESET}")
+        print(" 1. Всі борги, пов'язані з цією особою")
+        print(" 2. Тільки борги, де особа дала гроші (Кредитор)")
+        print(" 3. Тільки борги, де особа взяла гроші (Боржник)")
+        c2 = input(f" {CYAN}❯ Ваш вибір:{RESET} ").strip()
+        if c2 == "0": return None
+        
+        if c2 == "1":
+            filtered = [r for r in filtered if r.get("creditor", "").lower() == person or r.get("debtor", "").lower() == person]
+        elif c2 == "2":
+            filtered = [r for r in filtered if r.get("creditor", "").lower() == person]
+        elif c2 == "3":
+            filtered = [r for r in filtered if r.get("debtor", "").lower() == person]
+            
+    elif c1 == "3":
+        keyword = input(f" {CYAN}❯ Введіть слово для пошуку:{RESET} ").strip().lower()
+        if keyword == "0": return None
+        
+        filtered = [r for r in filtered if 
+                    keyword in r.get("creditor", "").lower() or 
+                    keyword in r.get("debtor", "").lower() or 
+                    keyword in r.get("note", "").lower()]
+                    
+        print(f"\n {BOLD}[2/3] Статус знайдених записів (0 для відміни):{RESET}")
+        print(" 1. Всі знайдені записи")
+        print(" 2. Тільки активні (не повернуті)")
+        print(" 3. Тільки повернуті")
+        c2 = input(f" {CYAN}❯ Ваш вибір:{RESET} ").strip()
+        if c2 == "0": return None
+        
+        if c2 == "2":
+            filtered = [r for r in filtered if not r.get("is_returned")]
+        elif c2 == "3":
+            filtered = [r for r in filtered if r.get("is_returned")]
+
+    elif c1 == "1":
+        print(f"\n {BOLD}[2/3] Загальний фільтр (0 для відміни):{RESET}")
+        print(" 1. Всі записи")
+        print(" 2. Тільки активні (не повернуті)")
+        print(" 3. Тільки повернуті")
+        c2 = input(f" {CYAN}❯ Ваш вибір:{RESET} ").strip()
+        if c2 == "0": return None
+        
+        if c2 == "2":
+            filtered = [r for r in filtered if not r.get("is_returned")]
+        elif c2 == "3":
+            filtered = [r for r in filtered if r.get("is_returned")]
+    else:
+        return None
+
+    if not filtered:
+        print(f"\n{RED} ✘ Записів за цими критеріями не знайдено.{RESET}")
+        return []
+
+    print(f"\n {BOLD}[3/3] Сортування (0 для відміни):{RESET}")
+    print(" 1. За замовчуванням (ID)")
+    print(" 2. За датою (найновіші ↓)")
+    print(" 3. За датою (найстаріші ↑)")
+    print(" 4. За сумою (від найбільшої ↓)")
+    print(" 5. За сумою (від найменшої ↑)")
+    s_choice = input(f" {CYAN}❯ Ваш вибір (Enter для 1):{RESET} ").strip()
+    if s_choice == "0": return None
+
+    if s_choice == "2": filtered.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+    elif s_choice == "3": filtered.sort(key=lambda x: x.get("timestamp", ""))
+    elif s_choice == "4": filtered.sort(key=lambda x: x.get("amount", 0.0), reverse=True)
+    elif s_choice == "5": filtered.sort(key=lambda x: x.get("amount", 0.0))
+    
+    return filtered
 
 # --- Інтерфейс користувача (CLI) ---
 def print_records(records):
     if not records:
-        print(" Записів немає.")
+        print(f"\n{RED} ✘ Записів немає.{RESET}")
         return
     
-    print(f" {'ID':<4} {'Кредитор':<15} {'Боржник':<15} {'Сума':>10} {'Статус':<12} {'Час':<20} {'Примітка'}")
-    print(" " + "-" * 100)
+    # Малюємо ASCII таблицю
+    print(f"\n{CYAN}┌{'─'*4}┬{'─'*14}┬{'─'*14}┬{'─'*10}┬{'─'*12}┬{'─'*16}┬{'─'*16}┐{RESET}")
+    print(f"{CYAN}│{RESET} {BOLD}{'ID':<2}{RESET} {CYAN}│{RESET} {BOLD}{'Кредитор':<12}{RESET} {CYAN}│{RESET} {BOLD}{'Боржник':<12}{RESET} {CYAN}│{RESET} {BOLD}{'Сума':>8}{RESET} {CYAN}│{RESET} {BOLD}{'Статус':<10}{RESET} {CYAN}│{RESET} {BOLD}{'Час':<14}{RESET} {CYAN}│{RESET} {BOLD}{'Примітка':<14}{RESET} {CYAN}│{RESET}")
+    print(f"{CYAN}├{'─'*4}┼{'─'*14}┼{'─'*14}┼{'─'*10}┼{'─'*12}┼{'─'*16}┼{'─'*16}┤{RESET}")
+    
     for r in records:
-        # Використовуємо .get() для безпеки, якщо трапляться старі або зламані записи
-        r_id = r.get("id", "?")
-        creditor = r.get("creditor", "Невідомо")
-        debtor = r.get("debtor", "Невідомо")
-        amount = r.get("amount", 0.0)
-        status = "Повернуто" if r.get("is_returned", False) else "Активний"
-        timestamp = r.get("timestamp", "-")
-        note = r.get("note", "")
+        r_id = str(r.get("id", "?"))[:2]
+        creditor = str(r.get("creditor", "Невідомо"))[:12]
+        debtor = str(r.get("debtor", "Невідомо"))[:12]
+        amount = f"{r.get('amount', 0.0):.2f}"[:8]
         
-        print(f" {r_id:<4} {creditor:<15} {debtor:<15} {amount:>10.2f} {status:<12} {timestamp:<20} {note}")
+        is_returned = r.get("is_returned", False)
+        status_text = "Повернуто" if is_returned else "Активний"
+        status_color = GREEN if is_returned else RED
+        
+        timestamp = str(r.get("timestamp", "-"))[:14] # Обрізаємо до хвилин
+        note = str(r.get("note", ""))[:14]
+
+        print(f"{CYAN}│{RESET} {r_id:<2} {CYAN}│{RESET} {creditor:<12} {CYAN}│{RESET} {debtor:<12} {CYAN}│{RESET} {amount:>8} {CYAN}│{RESET} {status_color}{status_text:<10}{RESET} {CYAN}│{RESET} {timestamp:<14} {CYAN}│{RESET} {note:<14} {CYAN}│{RESET}")
+        
+    print(f"{CYAN}└{'─'*4}┴{'─'*14}┴{'─'*14}┴{'─'*10}┴{'─'*12}┴{'─'*16}┴{'─'*16}┘{RESET}")
 
 def ui_add_loan():
-    print("\n--- Додавання нової позики (введіть 0 для відміни) ---")
-    creditor = input(" Хто дав гроші (Кредитор)? : ").strip()
+    print(f"\n{BOLD}--- Додавання нової позики (0 для відміни) ---{RESET}")
+    creditor = input(f" Хто {GREEN}дав{RESET} гроші (Кредитор)? : ").strip()
     if creditor == "0": return
     
-    debtor = input(" Хто взяв гроші (Боржник)? : ").strip()
+    debtor = input(f" Хто {RED}взяв{RESET} гроші (Боржник)? : ").strip()
     if debtor == "0": return
     
     if not creditor or not debtor:
-        print(" Помилка: імена не можуть бути порожніми.")
+        print(f"{RED} ✘ Помилка: імена не можуть бути порожніми.{RESET}")
         return
 
     try:
@@ -100,73 +194,92 @@ def ui_add_loan():
         if amount_str == "0": return
         amount = float(amount_str)
         if amount <= 0:
-            print(" Помилка: сума має бути більшою за нуль.")
+            print(f"{RED} ✘ Помилка: сума має бути більшою за нуль.{RESET}")
             return
     except ValueError:
-        print(" Помилка: введіть коректне число.")
+        print(f"{RED} ✘ Помилка: введіть коректне число.{RESET}")
         return
 
-    note = input(" Примітка (необов'язково, 0 для відміни): ").strip()
+    note = input(" Примітка (необов'язково): ").strip()
     if note == "0": return
 
-    time_str = input(" Дата і час (напр. 2026-06-22 14:30) або Enter для поточного: ").strip()
+    time_str = input(" Дата/час (напр. 2026-06-22 14:30) або Enter для поточного: ").strip()
     if time_str == "0": return
     
-    if not time_str:
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    else:
-        timestamp = time_str
+    timestamp = time_str if time_str else datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     records = load_data()
     if logic_add_record(records, creditor, debtor, amount, note, timestamp) == 0:
         save_data(records)
-        print(" Успіх: Запис додано!")
+        print(f"{GREEN} ✔ Успіх: Запис додано!{RESET}")
 
 def ui_show_all():
-    print("\n--- Перегляд позик ---")
-    print(" 1. Показати всю таблицю")
-    print(" 2. Знайти записи конкретної особи")
-    choice = input(" Ваш вибір (або 0 для відміни): ").strip()
-    
-    if choice == "0": return
-    
-    records = load_data()
-    
-    if choice == "1":
-        print_records(records)
-    elif choice == "2":
-        person = input(" Введіть ім'я особи для пошуку: ").strip().lower()
-        if person == "0": return
-        
-        # Шукаємо особу і серед кредиторів, і серед боржників (ігноруючи регістр)
-        filtered = [r for r in records if r.get("creditor", "").lower() == person or r.get("debtor", "").lower() == person]
-        
-        if not filtered:
-            print(f"\n Записів для особи '{person}' не знайдено.")
-        else:
-            print(f"\n--- Записи для: {person.capitalize()} ---")
-            print_records(filtered)
-    else:
-        print(" Невідомий вибір.")
-
-def ui_edit_loan():
-    print("\n--- Редагування запису (введіть 0 для відміни) ---")
+    print(f"\n{BOLD}--- Перегляд позик ---{RESET}")
     records = load_data()
     if not records:
-        print(" Список порожній.")
+        print(f"{YELLOW} Список порожній.{RESET}")
+        return
+
+    result = get_filtered_sorted_records(records)
+    if result is None or not result: return     
+    
+    clear()
+    print(f"\n{BOLD}--- Результат перегляду ---{RESET}")
+    print_records(result)
+
+    print(f"\n{CYAN}------------------------------------{RESET}")
+    export_choice = input(f" Бажаєте експортувати цю таблицю у CSV файл? (1 - Так, Enter - Ні): ").strip()
+    if export_choice == "1":
+        ui_do_csv_export(result)
+
+def ui_do_csv_export(result):
+    filename = input(f"\n {CYAN}❯ Введіть назву файлу (напр. my_debts):{RESET} ").strip()
+    if filename == "0" or not filename: return
+    
+    if not filename.endswith(".csv"):
+        filename += ".csv"
+        
+    try:
+        with open(filename, mode='w', encoding='utf-8', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(["ID", "Кредитор", "Боржник", "Сума", "Статус", "Час", "Примітка"])
+            for r in result:
+                status = "Повернуто" if r.get("is_returned", False) else "Активний"
+                writer.writerow([
+                    r.get("id", "?"), r.get("creditor", ""), r.get("debtor", ""), 
+                    r.get("amount", 0.0), status, r.get("timestamp", ""), r.get("note", "")
+                ])
+        print(f"{GREEN} ✔ Успіх: {len(result)} записів експортовано у '{filename}'!{RESET}")
+    except Exception as e:
+        print(f"{RED} ✘ Помилка при записі: {e}{RESET}")
+
+def ui_export_csv():
+    print(f"\n{BOLD}--- Експорт у CSV (Excel) ---{RESET}")
+    records = load_data()
+    if not records:
+        print(f"{YELLOW} Немає даних для експорту.{RESET}")
+        return
+        
+    result = get_filtered_sorted_records(records)
+    if result: ui_do_csv_export(result)
+
+def ui_edit_loan():
+    print(f"\n{BOLD}--- Редагування запису (0 для відміни) ---{RESET}")
+    records = load_data()
+    if not records:
+        print(f"{YELLOW} Список порожній.{RESET}")
         return
         
     try:
-        id_str = input(" Введіть ID запису для редагування: ").strip()
-        if id_str == "0": return
-        rec_id = int(id_str)
+        rec_id = int(input(f" {CYAN}❯ Введіть ID запису:{RESET} ").strip())
+        if rec_id == 0: return
     except ValueError:
-        print(" Помилка: ID має бути числом.")
+        print(f"{RED} ✘ Помилка: ID має бути числом.{RESET}")
         return
 
     current_record = next((r for r in records if r.get("id") == rec_id), None)
     if not current_record:
-        print(" Помилка: Запис не знайдено.")
+        print(f"{RED} ✘ Помилка: Запис не знайдено.{RESET}")
         return
 
     print("\n Вводьте нові значення або натисніть Enter, щоб залишити поточне.")
@@ -179,131 +292,116 @@ def ui_edit_loan():
         try:
             new_amount = float(new_amount_str)
         except ValueError:
-            print(" Помилка: некоректна сума. Зміни скасовано.")
+            print(f"{RED} ✘ Помилка: некоректна сума.{RESET}")
             return
 
     new_note = input(f" Примітка [{current_record.get('note', '')}]: ").strip()
-    new_time = input(f" Час [{current_record.get('timestamp', '')}]: ").strip()
 
     updates = {}
     if new_creditor: updates["creditor"] = new_creditor
     if new_debtor: updates["debtor"] = new_debtor
     if new_amount_str: updates["amount"] = new_amount
     if new_note: updates["note"] = new_note
-    if new_time: 
-        updates["timestamp"] = new_time
-    else:
-        updates["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    updates["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     if logic_update_record(records, rec_id, updates) == 0:
         save_data(records)
-        print(" Успіх: Запис оновлено!")
+        print(f"{GREEN} ✔ Успіх: Запис оновлено!{RESET}")
 
 def ui_mark_returned():
-    print("\n--- Позначити позику як повернуту (0 для відміни) ---")
+    print(f"\n{BOLD}--- Позначити позику як повернуту ---{RESET}")
     records = load_data()
     
     try:
-        id_str = input(" Введіть ID позики, яку повернули: ").strip()
-        if id_str == "0": return
-        rec_id = int(id_str)
+        rec_id = int(input(f" {CYAN}❯ Введіть ID позики (0 - відміна):{RESET} ").strip())
+        if rec_id == 0: return
     except ValueError:
-        print(" Помилка: ID має бути числом.")
+        print(f"{RED} ✘ Помилка: ID має бути числом.{RESET}")
         return
 
     if logic_update_record(records, rec_id, {"is_returned": True}) == 0:
         save_data(records)
-        print(" Успіх: Статус змінено на 'Повернуто'.")
+        print(f"{GREEN} ✔ Успіх: Статус змінено на 'Повернуто'.{RESET}")
     else:
-        print(" Помилка: Запис не знайдено.")
+        print(f"{RED} ✘ Помилка: Запис не знайдено.{RESET}")
 
 def ui_delete_loan():
-    print("\n--- Видалення запису (0 для відміни) ---")
+    print(f"\n{BOLD}--- Видалення запису ---{RESET}")
     records = load_data()
     try:
-        id_str = input(" ID запису для видалення: ").strip()
-        if id_str == "0": return
-        rec_id = int(id_str)
+        rec_id = int(input(f" {CYAN}❯ ID запису для видалення (0 - відміна):{RESET} ").strip())
+        if rec_id == 0: return
     except ValueError:
-        print(" Помилка: введіть ціле число.")
+        print(f"{RED} ✘ Помилка: введіть ціле число.{RESET}")
         return
 
     if logic_delete_record(records, rec_id) == 0:
         save_data(records)
-        print(f" Успіх: Запис #{rec_id} видалено.")
+        print(f"{GREEN} ✔ Успіх: Запис #{rec_id} видалено.{RESET}")
     else:
-        print(" Помилка: Запис не знайдено.")
-
-def ui_import_file():
-    print("\n--- Імпорт з файлу JSON (0 для відміни) ---")
-    filepath = input(" Введіть шлях до файлу (напр., test_import.json): ").strip()
-    if filepath == "0": return
-    
-    records = load_data()
-    status = logic_import_json(records, filepath)
-    
-    if status == 0:
-        save_data(records)
-        print(" Успіх: Дані імпортовано!")
-    elif status == 1:
-        print(" Помилка: Файл не знайдено.")
-    elif status == 2:
-        print(" Помилка: Неправильний формат файлу.")
+        print(f"{RED} ✘ Помилка: Запис не знайдено.{RESET}")
 
 def ui_show_balance():
-    print("\n--- Баланс (0 для відміни) ---")
-    person = input(" Для кого рахуємо баланс? (напр. 'Я'): ").strip()
-    if person == "0": return
+    print(f"\n{BOLD}--- Баланс ---{RESET}")
+    person = input(f" {CYAN}❯ Для кого рахуємо баланс?:{RESET} ").strip()
+    if person == "0" or not person: return
     
     records = load_data()
+    p_low = person.lower()
     
-    person_lower = person.lower()
+    owed_to = sum(r.get("amount", 0) for r in records if r.get("creditor", "").lower() == p_low and not r.get("is_returned", False))
+    owes = sum(r.get("amount", 0) for r in records if r.get("debtor", "").lower() == p_low and not r.get("is_returned", False))
+    net = owed_to - owes
     
-    # Використовуємо .get() щоб програма не ламалась через відсутні поля
-    owed_to_person = sum(r.get("amount", 0) for r in records if r.get("creditor", "").lower() == person_lower and not r.get("is_returned", False))
-    person_owes = sum(r.get("amount", 0) for r in records if r.get("debtor", "").lower() == person_lower and not r.get("is_returned", False))
-    
-    print(f"\n Особі '{person}' винні: {owed_to_person:.2f} грн")
-    print(f" Особа '{person}' винна:  {person_owes:.2f} грн")
-    print("-" * 35)
-    print(f" Чистий баланс:          {round(owed_to_person - person_owes, 2):.2f} грн")
+    # ASCII Блок балансу
+    print(f"\n {CYAN}┌{'─'*38}┐{RESET}")
+    print(f" {CYAN}│{RESET} {BOLD}Баланс для: {person.title():<24}{RESET}{CYAN}│{RESET}")
+    print(f" {CYAN}├{'─'*38}┤{RESET}")
+    print(f" {CYAN}│{RESET} {GREEN}Винні вам: {owed_to:>18.2f} грн{RESET} {CYAN}│{RESET}")
+    print(f" {CYAN}│{RESET} {RED}Ви винні:  {owes:>18.2f} грн{RESET} {CYAN}│{RESET}")
+    print(f" {CYAN}├{'─'*38}┤{RESET}")
+    net_color = GREEN if net >= 0 else RED
+    print(f" {CYAN}│{RESET} {BOLD}Чистий:    {net_color}{net:>18.2f} грн{RESET} {CYAN}│{RESET}")
+    print(f" {CYAN}└{'─'*38}┘{RESET}")
 
 # --- Головне меню ---
 def menu():
     actions = {
-        "1": ui_add_loan,
-        "2": ui_show_all,
-        "3": ui_edit_loan,
-        "4": ui_mark_returned,
-        "5": ui_show_balance,
-        "6": ui_import_file,
-        "7": ui_delete_loan,
+        "1": ui_add_loan, "2": ui_show_all, "3": ui_edit_loan,
+        "4": ui_mark_returned, "5": ui_show_balance, 
+        "6": ui_export_csv, "7": ui_delete_loan
     }
     
     while True:
-        print("\n" + "="*55)
-        print(" ПРО-Облік позик (Loan Tracker) ")
-        print("="*55)
-        print(" 1. Додати позику")
-        print(" 2. Переглянути записи (всі або пошук)")
-        print(" 3. Редагувати запис")
-        print(" 4. Позначити як повернуте")
-        print(" 5. Показати баланс конкретної особи")
-        print(" 6. Імпортувати записи з JSON-файлу")
-        print(" 7. Видалити запис")
-        print(" 0. Вийти")
+        clear()
+        print(f"{CYAN}╔═════════════════════════════════════════════════════════╗{RESET}")
+        print(f"{CYAN}║{RESET} {BOLD}{YELLOW}  ПРО-Облік позик (Loan Tracker)  {RESET}                      {CYAN}║{RESET}")
+        print(f"{CYAN}╠═════════════════════════════════════════════════════════╣{RESET}")
+        print(f"{CYAN}║{RESET} {BOLD}1.{RESET} Додати позику                                        {CYAN}║{RESET}")
+        print(f"{CYAN}║{RESET} {BOLD}2.{RESET} Переглянути записи (Фільтри + Сортування)            {CYAN}║{RESET}")
+        print(f"{CYAN}║{RESET} {BOLD}3.{RESET} Редагувати запис                                     {CYAN}║{RESET}")
+        print(f"{CYAN}║{RESET} {BOLD}4.{RESET} Позначити як повернуте                               {CYAN}║{RESET}")
+        print(f"{CYAN}║{RESET} {BOLD}5.{RESET} Показати баланс конкретної особи                     {CYAN}║{RESET}")
+        print(f"{CYAN}║{RESET} {BOLD}6.{RESET} Експортувати в CSV (Excel)                           {CYAN}║{RESET}")
+        print(f"{CYAN}║{RESET} {BOLD}7.{RESET} Видалити запис                                       {CYAN}║{RESET}")
+        print(f"{CYAN}║{RESET} {RED}0. Вийти{RESET}                                                {CYAN}║{RESET}")
+        print(f"{CYAN}╚═════════════════════════════════════════════════════════╝{RESET}")
         
-        choice = input("\n Ваш вибір: ").strip()
+        choice = input(f"\n {CYAN}❯ Ваш вибір:{RESET} ").strip()
         
         if choice == "0":
-            print(" До побачення!")
+            clear()
+            print(f"{GREEN} До побачення!{RESET}")
             break
             
         action = actions.get(choice)
         if action:
+            clear()
             action()
+            pause()
         else:
-            print(" Невідома команда. Спробуйте ще раз.")
+            print(f"{RED} ✘ Невідома команда.{RESET}")
+            pause()
 
 if __name__ == "__main__":
     menu()
