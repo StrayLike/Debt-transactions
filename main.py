@@ -416,7 +416,7 @@ def menu():
         print(f"{CYAN}║{RESET} {BOLD}6.{RESET} {'Експортувати в CSV':<52} {CYAN}║{RESET}")
         print(f"{CYAN}║{RESET} {BOLD}7.{RESET} {'Експортувати в JSON':<52} {CYAN}║{RESET}")
         print(f"{CYAN}║{RESET} {BOLD}8.{RESET} {'Видалити запис':<52} {CYAN}║{RESET}")
-        print(f"{CYAN}║{RESET} {RED}0. Вийти{RESET}                                              {CYAN}║{RESET}")
+        print(f"{CYAN}║{RESET} {RED}0. Вийти{RESET}                                                {CYAN}║{RESET}")
         print(f"{CYAN}╚═════════════════════════════════════════════════════════╝{RESET}")
         
         choice = input(f"\n {CYAN}❯ Ваш вибір:{RESET} ").strip()
