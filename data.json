@@ -14,7 +14,7 @@
     "debtor": "Галина",
     "amount": 1000.0,
     "timestamp": "2026-06-22 12:24:44",
-    "is_returned": false,
+    "is_returned": true,
     "note": "гроші"
   },
   {
@@ -34,15 +34,6 @@
     "timestamp": "2026-06-22 12:25:10",
     "is_returned": false,
     "note": "12"
-  },
-  {
-    "id": 5,
-    "creditor": "Я",
-    "debtor": "Олег",
-    "amount": 150.0,
-    "timestamp": "2026-06-18 13:05:00",
-    "is_returned": false,
-    "note": "На обід"
   },
   {
     "id": 6,
@@ -76,7 +67,7 @@
     "creditor": "Я",
     "debtor": "Марія",
     "amount": 1200.0,
-    "timestamp": "2026-06-21 09:45:00",
+    "timestamp": "2026-06-26 23:10:28",
     "is_returned": false,
     "note": "Ремонт авто"
   },
@@ -160,5 +151,41 @@
     "timestamp": "2026-06-20 21:00:00",
     "is_returned": false,
     "note": "Апгрейд ПК"
+  },
+  {
+    "id": 19,
+    "creditor": "Я",
+    "debtor": "Сима",
+    "amount": 200.0,
+    "timestamp": "2026-06-24 22:16:59",
+    "is_returned": false,
+    "note": "На хавчик"
+  },
+  {
+    "id": 20,
+    "creditor": "Назар",
+    "debtor": "Іван",
+    "amount": 2000.0,
+    "timestamp": "2026-06-24 22:58:14",
+    "is_returned": false,
+    "note": "Кава"
+  },
+  {
+    "id": 21,
+    "creditor": "Роман",
+    "debtor": "Іван",
+    "amount": 100.0,
+    "timestamp": "2026-06-24 23:10:41",
+    "is_returned": false,
+    "note": "на коктель"
+  },
+  {
+    "id": 22,
+    "creditor": "Максим",
+    "debtor": "Роман",
+    "amount": 200.0,
+    "timestamp": "2026-06-26 22:51:28",
+    "is_returned": false,
+    "note": "На чай"
   }
 ]
